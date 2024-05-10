@@ -2,7 +2,7 @@ import { Container, Title, Text, Button, Group } from '@mantine/core';
 import { Illustration } from '../components/Illustration.tsx';
 import classes from '../styles/NotFound.module.css';
 
-export function NothingFoundBackground() {
+export function NotFoundPage() {
   return (
     <Container className={classes.root}>
       <div className={classes.inner}>
