@@ -64,7 +64,7 @@ export function LoginPage() {
             console.error(err);
             setAlert({
                 title: 'Error',
-                message: err.response.data.message || 'An error occurred',
+                message: err.response.data.error || 'An error occurred',
                 severity: 'error',
             });
             setTimeout(() => {
