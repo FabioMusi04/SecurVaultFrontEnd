@@ -11,7 +11,7 @@ import {
     Button,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { CustomAlert, CustomAlertProps } from '../components/CustomAlert.tsx';
 
@@ -19,8 +19,20 @@ import axiosConf from "../axios/axiosConf.ts"
 
 export function RegisterPage() {
     const navigate = useNavigate();
-    document.title = "Login";
-    document.body.style.backgroundColor = "#525461";
+
+    useEffect(() => {
+        if (localStorage.getItem('SecurVaultToken')) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        document.title = "Login";
+        document.body.style.backgroundColor = "#525461";
+        return () => {
+            document.body.style.backgroundColor = "";
+        };
+    }, []);
 
     const onSubmit = () => {
         console.log(credentials);
