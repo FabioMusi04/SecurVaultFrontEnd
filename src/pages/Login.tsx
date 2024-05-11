@@ -13,6 +13,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
+import { CustomAlert, CustomAlertProps } from '../components/CustomAlert.tsx';
+
+import axiosConf from "../axios/axiosConf.ts"
+
 export function LoginPage() {
     const navigate = useNavigate();
     document.title = "Login";
@@ -21,8 +25,56 @@ export function LoginPage() {
     const onSubmit = () => {
         console.log(credentials);
         if (credentials.email.trim() === '' || credentials.password.trim() === '') {
+            setAlert({
+                title: 'Error',
+                message: 'Please fill in all fields',
+                severity: 'error',
+            });
+            setTimeout(() => {
+                setAlert({
+                    title: '',
+                    message: '',
+                    severity: '',
+                });
+            }, 3000);
             return;
         }
+        axiosConf.post('/auth/login', {
+            email: credentials.email,
+            password: credentials.password
+        }).then((res) => {
+            if (res.status !== 200) {
+                setAlert({
+                    title: 'Error',
+                    message: 'Invalid email or password',
+                    severity: 'error',
+                });
+                setTimeout(() => {
+                    setAlert({
+                        title: '',
+                        message: '',
+                        severity: '',
+                    });
+                }, 3000);
+                return;
+            }
+            localStorage.setItem('SecurVaultToken', res.data.token);
+            navigate('/dashboard');
+        }).catch((err) => {
+            console.error(err);
+            setAlert({
+                title: 'Error',
+                message: err.response.data.message || 'An error occurred',
+                severity: 'error',
+            });
+            setTimeout(() => {
+                setAlert({
+                    title: '',
+                    message: '',
+                    severity: '',
+                });
+            }, 3000);
+        });
     };
 
     const [credentials, setCredentials] = useState({
@@ -31,8 +83,16 @@ export function LoginPage() {
         remember: false
     });
 
+    const [alert, setAlert] = useState<CustomAlertProps>({
+        title: '',
+        message: '',
+        severity: '',
+    });
+
+
     return (
         <Container size={420} my={40}>
+            <CustomAlert {...alert} />
             <Title ta="center">
                 Welcome back!
             </Title>

@@ -1,8 +1,12 @@
 import { Container, Title, Text, Button, Group } from '@mantine/core';
 import { Illustration } from '../components/Illustration.tsx';
 import classes from '../styles/NotFound.module.css';
-
+import { useNavigate } from 'react-router-dom';
 export function NotFoundPage() {
+  document.title = "Not Found";
+
+  const navigate = useNavigate();
+
   return (
     <Container className={classes.root}>
       <div className={classes.inner}>
@@ -13,7 +17,7 @@ export function NotFoundPage() {
             Page you are trying to open does not exist.
           </Text>
           <Group justify="center">
-            <Button size="md">Take me back to home page</Button>
+            <Button size="md" onClick={() => navigate('/')}>Take me back to home page</Button>
           </Group>
         </div>
       </div>
