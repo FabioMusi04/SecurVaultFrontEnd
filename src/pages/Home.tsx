@@ -23,11 +23,11 @@ export function HomePage() {
                             }}>
                                 Vault
                             </Title>
-                            <Text size="lg" mt={"5%"}>
-                                <Text fw={700}>Secure your passwords with SecurVault. </Text> 
+                            <Text size="lg" component='span'>
+                                <Text fw={700} mt={"5%"} >Secure your passwords with SecurVault. </Text> 
                                 SecurVault is a password manager that helps you to store your passwords securely.
                                 It uses the latest encryption technology to protect your data.
-                                <br/><Text fw={700}>The best password manager for your business.</Text>
+                                <br/><Text fw={700} mt={"5%"} >The best password manager for your business.</Text>
                             </Text>
                             <Grid mt={"5%"}>
                                 <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
@@ -42,12 +42,14 @@ export function HomePage() {
                                 </Grid.Col>
                             </Grid>
                         </Grid.Col>
-                        <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
+                        <Grid.Col span={{ base: 12, md: 6, lg: 6 }} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <Image
                                 radius="md"
-                                src="https://placehold.co/600x400"
+                                h="100%"
+                                w="50%"
+                                fit="contain"
+                                src="/MainImage.jpeg"
                                 alt="Startup Landing"
-                                style={{ boxShadow: '0 0 10px gray' }}
                             />
                         </Grid.Col>
                     </Grid>
