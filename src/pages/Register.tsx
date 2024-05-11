@@ -93,10 +93,10 @@ export function RegisterPage() {
             localStorage.setItem('SecurVaultToken', res.data.token);
             navigate('/dashboard');
         }).catch((err) => {
-            console.error(err);
+            console.error(err.response.data);
             setAlert({
                 title: 'Error',
-                message: err.response.data.message || 'An error occurred',
+                message: err.response.data.error || 'An error occurred',
                 severity: 'error',
             });
             setTimeout(() => {
@@ -129,7 +129,7 @@ export function RegisterPage() {
             <Title ta="center">
                 Welcome back!
             </Title>
-            <Text c="dimmed" size="sm" ta="center" mt={5}>
+            <Text c="white" size="sm" ta="center" mt={5}>
                 You already have an account?{' '}
                 <Anchor size="sm" component="button" onClick={() => navigate("/login")}>
                     Sign in here
