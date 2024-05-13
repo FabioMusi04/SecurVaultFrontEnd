@@ -1,28 +1,105 @@
-import { Image, Container, Text, Button, Grid, Title, Card, Select } from '@mantine/core';
+import { Image, Container, Text, Button, Grid, Title, Card, Select, TextInput } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+
+interface Password {
+    id: string;
+    website: string;
+    username?: string;
+    email?: string;
+    password: string;
+    created_at: Date;
+    updated_at: Date;
+    icon: string;
+}
+
 export function DashboardPage() {
     const navigate = useNavigate();
 
-    // Assuming you have an array of passwords with a "name" property
-    const passwords = [
-        { id: '1', name: 'Apple', password: '123456', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2022-01-01') },
-        { id: '2', name: 'Banana', password: 'abcdef', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2021-01-02') },
-        { id: '3', name: 'Carrot', password: 'qwerty', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2022-01-03') },
-        { id: '4', name: 'Avocado', password: '987654', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2023-01-04') },
-        { id: '5', name: 'Broccoli', password: 'zxcvbn', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2024-01-05') },
-        { id: '6', name: 'Cabbage', password: 'poiuyt', icon: 'https://cdn-icons-png.flaticon.com/512/440/440664.png', date: new Date('2022-01-06') },
+    let pws: Password[] = [
+        {
+            id: '1',
+            website: 'Apple',
+            username: '',
+            email: '',
+            password: '123456',
+            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
+            created_at: new Date('2022-01-01'),
+            updated_at: new Date('2022-01-01'),
+        },
+        {
+            id: '2',
+            website: 'Banana',
+            username: '',
+            email: '',
+            password: 'abcdef',
+            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/1200px-Banana-Single.jpg',
+            created_at: new Date('2021-01-02'),
+            updated_at: new Date('2021-01-02')
+        },
+        {
+            id: '3',
+            website: 'Carrot',
+            username: '',
+            email: '',
+            password: 'qwerty',
+            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
+            created_at: new Date('2022-01-03'),
+            updated_at: new Date('2022-01-03')
+        },
+        {
+            id: '4',
+            website: 'Avocado',
+            username: '',
+            email: '',
+            password: '987654',
+            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
+            created_at: new Date('2023-01-04'),
+            updated_at: new Date('2023-01-04')
+        },
+        {
+            id: '5',
+            website: 'Broccoli',
+            username: '',
+            email: '',
+            password: 'zxcvbn',
+            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Broccoli_and_cross_section_edit.jpg/1200px-Broccoli_and_cross_section_edit.jpg',
+            created_at: new Date('2024-01-05'),
+            updated_at: new Date('2024-01-05')
+        },
+        {
+            id: '6',
+            website: 'Cabbage',
+            username: '',
+            email: '',
+            password: 'poiuyt',
+            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
+            created_at: new Date('2022-01-06'),
+            updated_at: new Date('2022-01-06')
+        },
     ];
 
-    const [sortBy, setSortBy] = useState('A-Z');
+    const [initialPasswords, setInitialPasswords] = useState<Password[]>(pws);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [editedPassword, setEditedPassword] = useState<Password>({
+        id: '',
+        website: '',
+        username: '',
+        email: '',
+        password: '',
+        created_at: new Date(),
+        updated_at: new Date(),
+        icon: '',
+    });
+    const [sortBy, setSortBy] = useState<'A-Z' | 'Newest' | 'Oldest'>('A-Z');
     const [selectedPassword, setSelectedPassword] = useState<string | null>(null);
-    const [groupedPasswords, setGroupedPasswords] = useState<Map<string, { name: string; password: string, id: string, icon: string, date: Date }[]>>(new Map());
+    const [groupedPasswords, setGroupedPasswords] = useState<Map<string, Password[]>>(new Map());
 
     const groupPasswordsByFirstLetter = () => {
-        const groupedPasswords: Map<string, { name: string; password: string, id: string, icon: string, date: Date }[]> = new Map();
+        const groupedPasswords: Map<string, Password[]> = new Map();
 
-        passwords.forEach(password => {
-            const firstLetter = password.name[0].toUpperCase();
+        initialPasswords.forEach(password => {
+            const firstLetter = password.website[0].toUpperCase();
             if (!groupedPasswords.has(firstLetter)) {
                 groupedPasswords.set(firstLetter, []);
             }
@@ -32,35 +109,29 @@ export function DashboardPage() {
         return groupedPasswords;
     };
 
-    const groupPasswordsByNewest = () => {
-        const groupedPasswords: { [key: string]: { name: string; password: string, id: string, icon: string, date: Date }[] } = {};
+    const groupPasswordsByDate = (sortBy: 'Newest' | 'Oldest') => {
+        const groupedPasswords: Map<string, Password[]> = new Map();
+        let sortedGroupedPasswords: Map<string, Password[]> = new Map();
 
-        passwords.forEach(password => {
-            const year = password.date.getFullYear().toString();
-            if (!groupedPasswords[year]) {
-                groupedPasswords[year] = [];
+        initialPasswords.forEach(password => {
+            const year = password.created_at.getFullYear().toString();
+            if (!groupedPasswords.has(year)) {
+                groupedPasswords.set(year, []);
             }
-            groupedPasswords[year].push(password);
+            groupedPasswords.get(year)?.push(password);
         });
-
-        return groupedPasswords;
+        if(sortBy === 'Newest') {
+            sortedGroupedPasswords = new Map([...groupedPasswords.entries()].sort((a, b) => parseInt(b[0]) - parseInt(a[0])));
+            sortedGroupedPasswords.forEach((passwords, year) => {
+                const sortedPasswords = passwords.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+                sortedGroupedPasswords.set(year, sortedPasswords);
+            });
+        }
+        if (sortBy === 'Oldest') {
+            sortedGroupedPasswords = new Map([...groupedPasswords.entries()].sort((a, b) => parseInt(a[0]) - parseInt(b[0])));
+        }
+        return sortedGroupedPasswords;
     };
-
-
-    const groupPasswordsByOldest = () => {
-        const groupedPasswords: { [key: string]: { name: string; password: string, id: string, icon: string, date: Date }[] } = {};
-
-        passwords.forEach(password => {
-            const year = password.date.getFullYear().toString();
-            if (!groupedPasswords[year]) {
-                groupedPasswords[year] = [];
-            }
-            groupedPasswords[year].push(password);
-        });
-
-        return groupedPasswords;
-    };
-
 
     useEffect(() => {
         if (!localStorage.getItem('SecurVaultToken')) {
@@ -75,6 +146,21 @@ export function DashboardPage() {
         };
     }, []);
 
+    useEffect(() => {
+        const deselectPassword = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest('[data-password-id]') && selectedPassword && !isEditing) {
+                setSelectedPassword(null);
+            }
+        };
+
+        document.addEventListener('click', deselectPassword);
+
+        return () => {
+            document.removeEventListener('click', deselectPassword);
+        };
+    }, [isEditing, selectedPassword]);
+
     const handleLogout = () => {
         localStorage.removeItem('SecurVaultToken');
         navigate('/login');
@@ -85,57 +171,66 @@ export function DashboardPage() {
     };
 
     useEffect(() => {
-        const deselectPassword = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-            if (!target.closest('[data-password-id]')) {
-                setSelectedPassword(null);
-            }
-        };
-
-        document.addEventListener('click', deselectPassword);
-
-        return () => {
-            document.removeEventListener('click', deselectPassword);
-        };
-    }, []);
-
-    useEffect(() => {
-        //MAP 
-        let sortedGroupedPasswords: Map<string, { name: string; password: string, id: string, icon: string, date: Date }[]> = new Map();
+        let sortedGroupedPasswords: Map<string, Password[]> = new Map();
         if (sortBy === 'A-Z') {
             sortedGroupedPasswords = groupPasswordsByFirstLetter();
-        } else if (sortBy === 'Newest') {
-            const groupedPasswords = groupPasswordsByNewest();
-
-            const sortedKeys = Object.keys(groupedPasswords).sort((a, b) => parseInt(b) - parseInt(a));
-
-
-            sortedKeys.forEach((key: string) => {
-                sortedGroupedPasswords.set(key, groupedPasswords[key]);
-            });
-        } else if (sortBy === 'Oldest') {
-            const groupedPasswords = groupPasswordsByOldest();
-
-            const sortedKeys = Object.keys(groupedPasswords).sort((a, b) => parseInt(a) - parseInt(b));
-
-
-            sortedKeys.forEach((key: string) => {
-                sortedGroupedPasswords.set(key, groupedPasswords[key]);
-            });
+        } else {
+            sortedGroupedPasswords = groupPasswordsByDate(sortBy);
         }
 
-        if (!sortedGroupedPasswords) return;
-
         setGroupedPasswords(sortedGroupedPasswords);
-
     }, [sortBy]);
+
+    const handleEdit = () => {
+        setIsEditing(true);
+        const result : Password = initialPasswords.find(password => password.id === selectedPassword) as Password;
+        result ? setEditedPassword(result) : setIsEditing(false);
+    };
+    const handleSave = () => {
+        setIsEditing(false);
+        const updatedPasswords = initialPasswords.map(password => {
+            if (password.id === editedPassword?.id) {
+                return {
+                    ...editedPassword
+                };
+            }
+            return password;
+        });
+        setEditedPassword({ 
+            id: '',
+            website: '',
+            username: '',
+            email: '',
+            password: '',
+            created_at: new Date(),
+            updated_at: new Date(),
+            icon: '',
+        });
+        setInitialPasswords(updatedPasswords);
+    }
+    const handleDelete = () => {
+        const updatedPasswords = initialPasswords.filter(password => password.website !== selectedPassword);
+        setInitialPasswords(updatedPasswords);
+        setSelectedPassword(null);
+    };
+
+    useEffect(() => {
+        setIsEditing(false);
+        setEditedPassword({
+            id: '',
+            website: '',
+            username: '',
+            email: '',
+            password: '',
+            created_at: new Date(),
+            updated_at: new Date(),
+            icon: '',
+        });
+    }, [selectedPassword]);
 
     return (
         <Container size="lg" style={{ textAlign: 'center' }} fluid>
-            <Title order={1} component="h1" m={50} c="white" style={{
-                textAlign: 'center', textShadow:
-                    "-1px -1px 0 black, 0   -1px 0 black,1px -1px 0 black,1px  0   0 black,1px  1px 0 black, 0    1px 0 black,-1px  1px 0 black,-1px  0   0 black"
-            }}>Welcome to your Password Manager Dashboard</Title>
+            <Title order={1} component="h1" m={50} c="white" style={{ textAlign: 'center', textShadow: "-1px -1px 0 black, 0 -1px 0 black,1px -1px 0 black,1px 0 0 black,1px 1px 0 black, 0 1px 0 black,-1px 1px 0 black,-1px 0 0 black" }}>Welcome to your Password Manager Dashboard</Title>
             <Grid gutter="lg" mt={50}>
                 <Grid.Col span={{ base: 12, md: 3, lg: 3 }}>
                     <Card shadow="sm">
@@ -157,7 +252,7 @@ export function DashboardPage() {
                                     data={['A-Z', 'Newest', 'Oldest']}
                                     mb={'15px'}
                                     value={sortBy}
-                                    onChange={(value) => setSortBy(value?.toString() || 'A-Z')}
+                                    onChange={(value) => setSortBy(value?.toString() as 'A-Z' | 'Newest' | 'Oldest')}
                                     styles={{
                                         input: {
                                             textAlign: 'center',
@@ -170,18 +265,77 @@ export function DashboardPage() {
                                 />
                             </div>
 
-                            {Array.from(groupedPasswords).map(([letter, passwords]) => (
-                                <div key={letter}>
-                                    <Title order={4} style={{ border: '1px solid white', textAlign: 'start', paddingLeft: '15px' }}>{letter}</Title>
+                            {Array.from(groupedPasswords).map(([key, passwords]) => (
+                                <div key={key}>
+                                    <Title order={4} style={{ border: '1px solid white', textAlign: 'start', paddingLeft: '15px' }}>{key}</Title>
                                     {passwords.map(password => (
-                                        <div key={password.id} data-password-id={password.id} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedPassword === password.id ? '#0075F6' : '#1D1D1D', padding: '5px' }} onClick={() => handleSelectPassword(password.id)}>
-                                            <Image src={password.icon} alt={password.name} width={64} height={64} ml={5} style={{ marginRight: '10px' }} />
-                                            <Text style={{ color: 'white' }} ml={15}>{password.name}</Text>
+                                        <div key={password.website} data-password-id={password.id} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedPassword === password.id ? '#0075F6' : '#1D1D1D', padding: '5px' }} onClick={() => handleSelectPassword(password.id)}>
+                                            <Image src={password.icon} alt={password.website} width={64} height={64} ml={5} style={{ marginRight: '10px' }} />
+                                            <Text style={{ color: 'white' }} ml={15}>{password.website}</Text>
                                         </div>
                                     ))}
                                 </div>
                             ))}
                         </div>
+                    </Card>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
+                    <Card shadow="sm">
+                        <Title order={3}>Password Info</Title>
+                        {selectedPassword ? (
+                            <div style={{ marginTop: '15px' }}>
+                                <TextInput
+                                    size="md"
+                                    label="Website"
+                                    value={isEditing ? editedPassword?.website : (initialPasswords.find(password => password.id === selectedPassword)?.website || 'NO DATA')} 
+                                    disabled={!isEditing}
+                                    onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, website: event.currentTarget.value }) : undefined}
+                                />
+                                {initialPasswords.find(password => password.id === selectedPassword)?.username && (
+                                    <TextInput
+                                        size="md"
+                                        label="Username"
+                                        value={isEditing ? editedPassword?.username : (initialPasswords.find(password => password.id === selectedPassword)?.username || 'NO DATA')}                                         
+                                        disabled={!isEditing}
+                                        mt={15}
+                                        onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, username: event.currentTarget.value }) : undefined}
+                                    />
+                                )}
+                                {initialPasswords.find(password => password.id === selectedPassword)?.email && (
+                                    <TextInput
+                                        size="md"
+                                        label="Email"
+                                        value={isEditing ? editedPassword?.email : (initialPasswords.find(password => password.id === selectedPassword)?.email || 'NO DATA')}                                          
+                                        disabled={!isEditing}
+                                        onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, email: event.currentTarget.value }) : undefined}
+                                        mt={15}
+                                    />
+                                )}
+                                <TextInput
+                                    size="md"
+                                    label="Password"
+                                    value={isEditing ? editedPassword?.password : (initialPasswords.find(password => password.id === selectedPassword)?.password || 'NO DATA')}
+                                    disabled={!isEditing}
+                                    onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, password: event.currentTarget.value }) : undefined}
+                                    mt={15}
+                                />
+
+                                <Button color="red" mt={15} onClick={handleDelete}>Delete</Button>
+                                {isEditing ? (
+                                    <Button color="blue" mt={15} ml={15} onClick={handleSave}>Save</Button>
+                                ) : (
+                                    <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>
+                                )}
+                                <Text mt={15} style={{ color: 'white' }}>
+                                    Created at: {initialPasswords.find(password => password.id === selectedPassword)?.created_at.toDateString()}
+                                </Text>
+                                <Text style={{ color: 'white' }}>
+                                    Updated at: {initialPasswords.find(password => password.id === selectedPassword)?.updated_at.toDateString()}
+                                </Text>
+                            </div>
+                        ) : (
+                            <Text style={{ color: 'white' }}>Select a password to view more information</Text>
+                        )}
                     </Card>
                 </Grid.Col>
             </Grid>
