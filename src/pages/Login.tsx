@@ -90,8 +90,8 @@ export function LoginPage() {
     };
 
     const [credentials, setCredentials] = useState({
-        email: '',
-        password: '',
+        email: 'admin@gmail.com',
+        password: 'Admin@123',
         remember: false
     });
 
