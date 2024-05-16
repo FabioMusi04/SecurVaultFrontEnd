@@ -118,9 +118,6 @@ export function DashboardPage() {
     };
 
     const handleSelectPassword = (passwordId: string) => {
-        const selected = initialPasswords.find(password => password._id === passwordId);
-        console.log(selected);
-        const decryptedPassword = selected?.password; //hash with salt and saltrounds
         setSelectedPassword(passwordId);
     };
 
