@@ -2,105 +2,43 @@ import { Image, Container, Text, Button, Grid, Title, Card, Select, TextInput, M
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
+import axiosConf from '../axios/axiosConf.ts';
 
 interface Password {
-    id: string;
+    _id: string;
     website: string;
     username?: string;
     email?: string;
     password: string;
-    created_at: Date;
-    updated_at: Date;
+    created_at: string;
+    updated_at: string;
     icon: string;
 }
 
 export function DashboardPage() {
     const navigate = useNavigate();
 
-    let pws: Password[] = [
-        {
-            id: '1',
-            website: 'Apple',
-            username: '',
-            email: '',
-            password: '123456',
-            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1200px-Apple_logo_black.svg.png',
-            created_at: new Date('2022-01-01'),
-            updated_at: new Date('2022-01-01'),
-        },
-        {
-            id: '2',
-            website: 'Banana',
-            username: '',
-            email: '',
-            password: 'abcdef',
-            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/1200px-Banana-Single.jpg',
-            created_at: new Date('2021-01-02'),
-            updated_at: new Date('2021-01-02')
-        },
-        {
-            id: '3',
-            website: 'Carrot',
-            username: '',
-            email: '',
-            password: 'qwerty',
-            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
-            created_at: new Date('2022-01-03'),
-            updated_at: new Date('2022-01-03')
-        },
-        {
-            id: '4',
-            website: 'Avocado',
-            username: '',
-            email: '',
-            password: '987654',
-            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
-            created_at: new Date('2023-01-04'),
-            updated_at: new Date('2023-01-04')
-        },
-        {
-            id: '5',
-            website: 'Broccoli',
-            username: '',
-            email: '',
-            password: 'zxcvbn',
-            icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Broccoli_and_cross_section_edit.jpg/1200px-Broccoli_and_cross_section_edit.jpg',
-            created_at: new Date('2024-01-05'),
-            updated_at: new Date('2024-01-05')
-        },
-        {
-            id: '6',
-            website: 'Cabbage',
-            username: '',
-            email: '',
-            password: 'poiuyt',
-            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
-            created_at: new Date('2022-01-06'),
-            updated_at: new Date('2022-01-06')
-        },
-    ];
-
-    const [initialPasswords, setInitialPasswords] = useState<Password[]>(pws);
+    const [initialPasswords, setInitialPasswords] = useState<Password[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [isAdding, { open, close }] = useDisclosure(false);
     const [editedPassword, setEditedPassword] = useState<Password>({
-        id: '',
+        _id: '',
         website: '',
         username: '',
         email: '',
         password: '',
-        created_at: new Date(),
-        updated_at: new Date(),
+        created_at: '',
+        updated_at: '',
         icon: '',
     });
     const [addedPassword, setAddedPassword] = useState<Password>({
-        id: '',
+        _id: '',
         website: '',
         username: '',
         email: '',
         password: '',
-        created_at: new Date(),
-        updated_at: new Date(),
+        created_at: '',
+        updated_at: '',
         icon: '',
     });
     const [selectedOption, setSelectedOption] = useState('username');
@@ -127,7 +65,7 @@ export function DashboardPage() {
         let sortedGroupedPasswords: Map<string, Password[]> = new Map();
 
         initialPasswords.forEach(password => {
-            const year = password.created_at.getFullYear().toString();
+            const year = new Date(password.created_at).getFullYear().toString();
             if (!groupedPasswords.has(year)) {
                 groupedPasswords.set(year, []);
             }
@@ -136,7 +74,7 @@ export function DashboardPage() {
         if (sortBy === 'Newest') {
             sortedGroupedPasswords = new Map([...groupedPasswords.entries()].sort((a, b) => parseInt(b[0]) - parseInt(a[0])));
             sortedGroupedPasswords.forEach((passwords, year) => {
-                const sortedPasswords = passwords.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+                const sortedPasswords = passwords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                 sortedGroupedPasswords.set(year, sortedPasswords);
             });
         }
@@ -180,6 +118,9 @@ export function DashboardPage() {
     };
 
     const handleSelectPassword = (passwordId: string) => {
+        const selected = initialPasswords.find(password => password._id === passwordId);
+        console.log(selected);
+        const decryptedPassword = selected?.password; //hash with salt and saltrounds
         setSelectedPassword(passwordId);
     };
 
@@ -196,13 +137,13 @@ export function DashboardPage() {
 
     const handleEdit = () => {
         setIsEditing(true);
-        const result: Password = initialPasswords.find(password => password.id === selectedPassword) as Password;
+        const result: Password = initialPasswords.find(password => password._id === selectedPassword) as Password;
         result ? setEditedPassword(result) : setIsEditing(false);
     };
     const handleSave = () => {
         setIsEditing(false);
         const updatedPasswords = initialPasswords.map(password => {
-            if (password.id === editedPassword?.id) {
+            if (password._id === editedPassword?._id) {
                 return {
                     ...editedPassword
                 };
@@ -210,63 +151,80 @@ export function DashboardPage() {
             return password;
         });
         setEditedPassword({
-            id: '',
+            _id: '',
             website: '',
             username: '',
             email: '',
             password: '',
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: '',
+            updated_at: '',
             icon: '',
         });
         setInitialPasswords(updatedPasswords);
     }
-    const handleDelete = () => {
-        const updatedPasswords = initialPasswords.filter(password => password.id !== selectedPassword);
-        setInitialPasswords(updatedPasswords);
-        setSelectedPassword(null);
+    const handleDelete = async () => {
+        const result = await axiosConf.delete(`/password/remove/${selectedPassword}`);
+        if (result.status >= 200 && result.status < 300) {
+            console.log(result.data);
+            setInitialPasswords(initialPasswords.filter(password => password._id !== selectedPassword));
+            setSelectedPassword(null);
+        } else {
+            console.log(result.data);
+        }
+
     };
 
     useEffect(() => {
         setIsEditing(false);
         setEditedPassword({
-            id: '',
+            _id: '',
             website: '',
             username: '',
             email: '',
             password: '',
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: '',
+            updated_at: '',
             icon: '',
         });
     }, [selectedPassword]);
 
-    const handleAdd = () => {
-        if(!addedPassword.website || !addedPassword.password || (!addedPassword.username && !addedPassword.email)) {
-            
+    const handleAdd = async () => {
+        if (!addedPassword.website || !addedPassword.password || (!addedPassword.username && !addedPassword.email)) {
+
             return;
         }
-        const newPasswords = [...initialPasswords];
-        newPasswords.push({
-            ...addedPassword,
-            id: (initialPasswords.length + 1).toString(),
-            created_at: new Date(),
-            updated_at: new Date(),
-            icon: 'https://cdn-icons-png.flaticon.com/512/5582/5582931.png',
-        });
-        setInitialPasswords(newPasswords);
-        setAddedPassword({
-            id: '',
-            website: '',
-            username: '',
-            email: '',
-            password: '',
-            created_at: new Date(),
-            updated_at: new Date(),
-            icon: '',
-        });
-        close();
+        const result = await axiosConf.post('/password/add', addedPassword);
+        if (result.status >= 200 && result.status < 300) {
+            console.log(result.data);
+            setInitialPasswords([...initialPasswords, result.data.password]);
+            setAddedPassword({
+                _id: '',
+                website: '',
+                username: '',
+                email: '',
+                password: '',
+                created_at: '',
+                updated_at: '',
+                icon: '',
+            });
+            close();
+        } else {
+            console.log(result.data);
+        }
     };
+
+    useEffect(() => {
+        const fetchPasswords = async () => {
+            const result = await axiosConf.get('/password');
+            if (result.status >= 200 && result.status < 300) {
+                setInitialPasswords(result.data);
+                console.log(result.data)
+            } else {
+                console.log(result.data);
+            }
+        };
+        fetchPasswords();
+    }, []);
 
 
     return (
@@ -312,7 +270,7 @@ export function DashboardPage() {
                                 <div key={key}>
                                     <Title order={4} style={{ border: '1px solid white', textAlign: 'start', paddingLeft: '15px' }}>{key}</Title>
                                     {passwords.map(password => (
-                                        <div key={password.website} data-password-id={password.id} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedPassword === password.id ? '#0075F6' : '#1D1D1D', padding: '5px' }} onClick={() => handleSelectPassword(password.id)}>
+                                        <div key={password.website} data-password-id={password._id} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedPassword === password._id ? '#0075F6' : '#1D1D1D', padding: '5px' }} onClick={() => handleSelectPassword(password._id)}>
                                             <Image src={password.icon} alt={password.website} width={64} height={64} ml={5} style={{ marginRight: '10px' }} />
                                             <Text style={{ color: 'white' }} ml={15}>{password.website}</Text>
                                         </div>
@@ -325,30 +283,30 @@ export function DashboardPage() {
                 <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
                     <Card shadow="sm">
                         <Title order={3}>Password Info</Title>
-                        {selectedPassword ? (
+                        {selectedPassword && initialPasswords.length > 0 ? (
                             <div style={{ marginTop: '15px' }}>
                                 <TextInput
                                     size="md"
                                     label="Website"
-                                    value={isEditing ? editedPassword?.website : (initialPasswords.find(password => password.id === selectedPassword)?.website || 'NO DATA')}
+                                    value={isEditing ? editedPassword?.website : (initialPasswords.find(password => password._id === selectedPassword)?.website || 'NO DATA')}
                                     disabled={!isEditing}
                                     onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, website: event.currentTarget.value }) : undefined}
                                 />
-                                {initialPasswords.find(password => password.id === selectedPassword)?.username && (
+                                {initialPasswords.find(password => password._id === selectedPassword)?.username && (
                                     <TextInput
                                         size="md"
                                         label="Username"
-                                        value={isEditing ? editedPassword?.username : (initialPasswords.find(password => password.id === selectedPassword)?.username || 'NO DATA')}
+                                        value={isEditing ? editedPassword?.username : (initialPasswords.find(password => password._id === selectedPassword)?.username || 'NO DATA')}
                                         disabled={!isEditing}
                                         mt={15}
                                         onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, username: event.currentTarget.value }) : undefined}
                                     />
                                 )}
-                                {initialPasswords.find(password => password.id === selectedPassword)?.email && (
+                                {initialPasswords.find(password => password._id === selectedPassword)?.email && (
                                     <TextInput
                                         size="md"
                                         label="Email"
-                                        value={isEditing ? editedPassword?.email : (initialPasswords.find(password => password.id === selectedPassword)?.email || 'NO DATA')}
+                                        value={isEditing ? editedPassword?.email : (initialPasswords.find(password => password._id === selectedPassword)?.email || 'NO DATA')}
                                         disabled={!isEditing}
                                         onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, email: event.currentTarget.value }) : undefined}
                                         mt={15}
@@ -357,7 +315,7 @@ export function DashboardPage() {
                                 <TextInput
                                     size="md"
                                     label="Password"
-                                    value={isEditing ? editedPassword?.password : (initialPasswords.find(password => password.id === selectedPassword)?.password || 'NO DATA')}
+                                    value={isEditing ? editedPassword?.password : (initialPasswords.find(password => password._id === selectedPassword)?.password || 'NO DATA')}
                                     disabled={!isEditing}
                                     onChange={isEditing ? (event) => setEditedPassword({ ...editedPassword, password: event.currentTarget.value }) : undefined}
                                     mt={15}
@@ -369,12 +327,10 @@ export function DashboardPage() {
                                 ) : (
                                     <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>
                                 )}
-                                <Text mt={15} style={{ color: 'white' }}>
-                                    Created at: {initialPasswords.find(password => password.id === selectedPassword)?.created_at.toDateString()}
-                                </Text>
-                                <Text style={{ color: 'white' }}>
-                                    Updated at: {initialPasswords.find(password => password.id === selectedPassword)?.updated_at.toDateString()}
-                                </Text>
+                                <Text mt={15} style={{ color: 'white' }}>Created at: {
+                                    new Date(initialPasswords.find(password => password._id === selectedPassword)?.created_at ?? '').toDateString() || 'NO DATA'
+                                }</Text>
+                                <Text style={{ color: 'white' }}>Updated at: {new Date(initialPasswords.find(password => password._id === selectedPassword)?.updated_at ?? '').toDateString() || 'NO DATA'}</Text>
                             </div>
                         ) : (
                             <Text style={{ color: 'white' }}>Select a password to view more information</Text>
