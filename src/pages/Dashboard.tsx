@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import axiosConf from '../axios/axiosConf.ts';
+import { CustomAlert, CustomAlertProps } from '../components/CustomAlert.tsx';
 
 interface Password {
     _id: string;
@@ -45,6 +46,12 @@ export function DashboardPage() {
     const [sortBy, setSortBy] = useState<'A-Z' | 'Newest' | 'Oldest'>('A-Z');
     const [selectedPassword, setSelectedPassword] = useState<string | null>(null);
     const [groupedPasswords, setGroupedPasswords] = useState<Map<string, Password[]>>(new Map());
+
+    const [alert, setAlert] = useState<CustomAlertProps>({
+        title: '',
+        message: '',
+        severity: '',
+    });
 
     const groupPasswordsByFirstLetter = () => {
         const groupedPasswords: Map<string, Password[]> = new Map();
@@ -139,31 +146,55 @@ export function DashboardPage() {
     };
     const handleSave = async () => {
         setIsEditing(false);
-        const result = await axiosConf.put(`/password/update/${editedPassword._id}`, editedPassword);
-        if (result.status >= 200 && result.status < 300) {
-            const updatedPasswords = initialPasswords.map(password => {
-                if (password._id === editedPassword?._id) {
-                    return {
-                        ...editedPassword
-                    };
-                }
-                return password;
-            });
-            setEditedPassword({
-                _id: '',
-                website: '',
-                username: '',
-                email: '',
-                password: '',
-                created_at: '',
-                updated_at: '',
-                icon: '',
-            });
-            setInitialPasswords(updatedPasswords);
-        } else {
-            console.log(result.data);
+        try {
+            const result = await axiosConf.put(`/password/update/${editedPassword._id}`, editedPassword);
+            if (result.status >= 200 && result.status < 300) {
+                const updatedPasswords = initialPasswords.map(password => {
+                    if (password._id === editedPassword._id) {
+                        return { ...editedPassword };
+                    }
+                    return password;
+                });
+                setInitialPasswords(updatedPasswords);
+                setEditedPassword({
+                    _id: '',
+                    website: '',
+                    username: '',
+                    email: '',
+                    password: '',
+                    created_at: '',
+                    updated_at: '',
+                    icon: '',
+                });
+                setAlert({ title: 'Success', message: 'Password updated successfully!', severity: 'success' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+            } else {
+                setAlert({ title: 'Error', message: 'Failed to update password.', severity: 'error' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+            }
+        } catch (error: any) {
+            setAlert({ title: 'Error', message: error.message, severity: 'error' });
+            setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
         }
-    }; 
+    };
+    const handleDelete = async () => {
+        try {
+            const result = await axiosConf.delete(`/password/remove/${selectedPassword}`);
+            if (result.status >= 200 && result.status < 300) {
+                setInitialPasswords(initialPasswords.filter(password => password._id !== selectedPassword));
+                setSelectedPassword(null);
+                setAlert({ title: 'Success', message: 'Password deleted successfully!', severity: 'success' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+            } else {
+                setAlert({ title: 'Error', message: 'Failed to delete password.', severity: 'error' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+            }
+        } catch (error: any) {
+            setAlert({ title: 'Error', message: error.message, severity: 'error' });
+            setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+        }
+    };
+
     const handleCancel = () => {
         setIsEditing(false);
         setEditedPassword({
@@ -176,18 +207,6 @@ export function DashboardPage() {
             updated_at: '',
             icon: '',
         });
-    };
-
-    const handleDelete = async () => {
-        const result = await axiosConf.delete(`/password/remove/${selectedPassword}`);
-        if (result.status >= 200 && result.status < 300) {
-            console.log(result.data);
-            setInitialPasswords(initialPasswords.filter(password => password._id !== selectedPassword));
-            setSelectedPassword(null);
-        } else {
-            console.log(result.data);
-        }
-
     };
 
     useEffect(() => {
@@ -206,28 +225,37 @@ export function DashboardPage() {
 
     const handleAdd = async () => {
         if (!addedPassword.website || !addedPassword.password || (!addedPassword.username && !addedPassword.email)) {
-
+            setAlert({ title: 'Error', message: 'Please fill all required fields.', severity: 'error' });
+            setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
             return;
         }
-        const result = await axiosConf.post('/password/add', addedPassword);
-        if (result.status >= 200 && result.status < 300) {
-            console.log(result.data);
-            setInitialPasswords([...initialPasswords, result.data.password]);
-            setAddedPassword({
-                _id: '',
-                website: '',
-                username: '',
-                email: '',
-                password: '',
-                created_at: '',
-                updated_at: '',
-                icon: '',
-            });
-            close();
-        } else {
-            console.log(result.data);
+        try {
+            const result = await axiosConf.post('/password/add', addedPassword);
+            if (result.status >= 200 && result.status < 300) {
+                setInitialPasswords([...initialPasswords, result.data.password]);
+                setAddedPassword({
+                    _id: '',
+                    website: '',
+                    username: '',
+                    email: '',
+                    password: '',
+                    created_at: '',
+                    updated_at: '',
+                    icon: '',
+                });
+                setAlert({ title: 'Success', message: 'Password added successfully!', severity: 'success' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+                close();
+            } else {
+                setAlert({ title: 'Error', message: 'Failed to add password.', severity: 'error' });
+                setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
+            }
+        } catch (error: any) {
+            setAlert({ title: 'Error', message: error.message, severity: 'error' });
+            setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
         }
     };
+
 
     useEffect(() => {
         const fetchPasswords = async () => {
@@ -245,6 +273,7 @@ export function DashboardPage() {
 
     return (
         <Container size="lg" style={{ textAlign: 'center' }} fluid>
+            <CustomAlert {...alert} />
             <Title order={1} component="h1" m={50} c="white" style={{ textAlign: 'center', textShadow: "-1px -1px 0 black, 0 -1px 0 black,1px -1px 0 black,1px 0 0 black,1px 1px 0 black, 0 1px 0 black,-1px 1px 0 black,-1px 0 0 black" }}>Welcome to your Password Manager Dashboard</Title>
             <Grid gutter="lg" mt={50}>
                 <Grid.Col span={{ base: 12, md: 3, lg: 3 }}>
@@ -337,17 +366,17 @@ export function DashboardPage() {
                                     mt={15}
                                 />
 
-                              
+
                                 {isEditing ? (
                                     <>
-                                      <Button color="red" mt={15} onClick={handleCancel}>Cancel</Button>
-                                    <Button color="blue" mt={15} ml={15} onClick={handleSave}>Save</Button>
+                                        <Button color="red" mt={15} onClick={handleCancel}>Cancel</Button>
+                                        <Button color="blue" mt={15} ml={15} onClick={handleSave}>Save</Button>
                                     </>
                                 ) : (
                                     <>
-                                    <Button color="red" mt={15} onClick={handleDelete}>Delete</Button>
-                                    <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>  
-                                    </>                             
+                                        <Button color="red" mt={15} onClick={handleDelete}>Delete</Button>
+                                        <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>
+                                    </>
                                 )}
                                 <Text mt={15} style={{ color: 'white' }}>Created at: {
                                     new Date(initialPasswords.find(password => password._id === selectedPassword)?.created_at ?? '').toDateString() || 'NO DATA'

@@ -9,14 +9,18 @@ export interface CustomAlertProps {
 
 export function CustomAlert({ title, message, severity }: CustomAlertProps) {
     let icon = null;
-    if (severity === 'error') icon = <IconInfoCircle color="red" />;
-    else if (severity === 'warning') icon = <IconInfoCircle color="yellow" />;
-    else if (severity === 'success') icon = <IconInfoCircle color="green" />;
-    else if (severity === 'info') icon = <IconInfoCircle color="blue" />;
-    else icon = <IconInfoCircle />;
+    let color = '';
+    if (severity === 'error') {
+        icon = <IconInfoCircle color="red" />;
+        color = 'red';
+    }
+    else if (severity === 'warning') {icon = <IconInfoCircle color="yellow" />; color = 'yellow';}
+    else if (severity === 'success') {icon = <IconInfoCircle color="green" />; color = 'green';}
+    else if (severity === 'info') {icon = <IconInfoCircle color="blue" />; color = 'blue';}
+    else {icon = <IconInfoCircle />; color = 'gray';}
     return (
         title === '' && message === '' && severity === '' ? null :
-        <Alert variant="light" color="red" radius="lg" title={title} icon={icon} m={10} style={{border: '1px solid white'}}>
+        <Alert variant="light" color={color} radius="lg" title={title} icon={icon} m={10} style={{border: '1px solid white'}}>
             {message}
         </Alert>
     );
