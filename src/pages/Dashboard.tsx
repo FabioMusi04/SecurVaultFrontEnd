@@ -137,16 +137,35 @@ export function DashboardPage() {
         const result: Password = initialPasswords.find(password => password._id === selectedPassword) as Password;
         result ? setEditedPassword(result) : setIsEditing(false);
     };
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsEditing(false);
-        const updatedPasswords = initialPasswords.map(password => {
-            if (password._id === editedPassword?._id) {
-                return {
-                    ...editedPassword
-                };
-            }
-            return password;
-        });
+        const result = await axiosConf.put(`/password/update/${editedPassword._id}`, editedPassword);
+        if (result.status >= 200 && result.status < 300) {
+            const updatedPasswords = initialPasswords.map(password => {
+                if (password._id === editedPassword?._id) {
+                    return {
+                        ...editedPassword
+                    };
+                }
+                return password;
+            });
+            setEditedPassword({
+                _id: '',
+                website: '',
+                username: '',
+                email: '',
+                password: '',
+                created_at: '',
+                updated_at: '',
+                icon: '',
+            });
+            setInitialPasswords(updatedPasswords);
+        } else {
+            console.log(result.data);
+        }
+    }; 
+    const handleCancel = () => {
+        setIsEditing(false);
         setEditedPassword({
             _id: '',
             website: '',
@@ -157,8 +176,8 @@ export function DashboardPage() {
             updated_at: '',
             icon: '',
         });
-        setInitialPasswords(updatedPasswords);
-    }
+    };
+
     const handleDelete = async () => {
         const result = await axiosConf.delete(`/password/remove/${selectedPassword}`);
         if (result.status >= 200 && result.status < 300) {
@@ -318,11 +337,17 @@ export function DashboardPage() {
                                     mt={15}
                                 />
 
-                                <Button color="red" mt={15} onClick={handleDelete}>Delete</Button>
+                              
                                 {isEditing ? (
+                                    <>
+                                      <Button color="red" mt={15} onClick={handleCancel}>Cancel</Button>
                                     <Button color="blue" mt={15} ml={15} onClick={handleSave}>Save</Button>
+                                    </>
                                 ) : (
-                                    <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>
+                                    <>
+                                    <Button color="red" mt={15} onClick={handleDelete}>Delete</Button>
+                                    <Button color="blue" mt={15} ml={15} onClick={handleEdit}>Edit</Button>  
+                                    </>                             
                                 )}
                                 <Text mt={15} style={{ color: 'white' }}>Created at: {
                                     new Date(initialPasswords.find(password => password._id === selectedPassword)?.created_at ?? '').toDateString() || 'NO DATA'
