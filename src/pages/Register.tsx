@@ -122,11 +122,11 @@ export function RegisterPage() {
     };
 
     const [credentials, setCredentials] = useState({
-        email: '',
-        username: '',
-        password: '',
-        confirmPassword: '',
-        agreeTerms: false
+        email: 'admin@gmail.com',
+        username: 'Admin',
+        password: 'Admin@123',
+        confirmPassword: 'Admin@123',
+        agreeTerms: true
     });
 
     const [alert, setAlert] = useState<CustomAlertProps>({

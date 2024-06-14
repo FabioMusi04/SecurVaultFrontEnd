@@ -248,10 +248,12 @@ export function DashboardPage() {
                 close();
             } else {
                 setAlert({ title: 'Error', message: 'Failed to add password.', severity: 'error' });
+                console.log(result);
                 setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
             }
         } catch (error: any) {
-            setAlert({ title: 'Error', message: error.message, severity: 'error' });
+            setAlert({ title: 'Error', message: error.response.data.message, severity: 'error' });
+            console.log(error);
             setTimeout(() => setAlert({ title: '', message: '', severity: '' }), 3000);
         }
     };
@@ -262,9 +264,9 @@ export function DashboardPage() {
             const result = await axiosConf.get('/password');
             if (result.status >= 200 && result.status < 300) {
                 setInitialPasswords(result.data);
-                console.log(result.data)
             } else {
-                console.log(result.data);
+                setAlert({ title: 'Error', message: 'Failed to fetch passwords.', severity: 'error' });
+                console.log(result);
             }
         };
         fetchPasswords();
